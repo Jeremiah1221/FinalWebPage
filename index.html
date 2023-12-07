@@ -21,6 +21,8 @@
 		<script type="text/javascript" src="Poverty.js"></script>
         <script type="text/javascript" src="Merged.js"></script>
 		<script type="text/javascript" src="pop_2020.js"></script>
+		<script type="text/javascript" src="chi_income.js"></script>
+		<script type="text/javascript" src="chi_health.js"></script>
 		
 <style>
           /* Optional: adjust the values below to change the appearance of the legend */
@@ -271,27 +273,27 @@
         L.control.layers(basemaps, overlaymaps).addTo(map1);
 
         // Removing the legend when the layer is removed
-        map.on('overlayremove', function(eventLayer){
+        map1.on('overlayremove', function(eventLayer){
           if (eventLayer.name == 'Medical Facilitie'){ // We use the key/display name to refer to the layer
             map.removeControl(legend); // legend is the variable name of the layer legend
           }
         });
 
         // Adding the legend when the layer is added
-        map.on('overlayadd', function(eventLayer){
+        map1.on('overlayadd', function(eventLayer){
           if (eventLayer.name == 'Total Population')
 		     legend.addTo(map1);
         });
 		
 		// Removing the legend when the layer is removed
-        map.on('overlayremove', function(eventLayer){
+        map1.on('overlayremove', function(eventLayer){
           if (eventLayer.name == 'Total Population'){ // We use the key/display name to refer to the layer
             map.removeControl(legend); // legend is the variable name of the layer legend
           }
         });
 
         // Adding the legend when the layer is added
-        map.on('overlayadd', function(eventLayer){
+        map1.on('overlayadd', function(eventLayer){
           if (eventLayer.name == 'Medical Facilitie')
 		     legend.addTo(map1);
         });
@@ -306,4 +308,163 @@
 
 <div id="Tokyo" class="tabcontent">
   <h3>Nitish</h3>
+   <body style="background-color:powderblue;">
+	<h1 style="font-family:verdana;">Income and Insurance Access in Chicago</h1>
+        <div id="map2"></div>
+
+        <script type="text/javascript">
+
+          var map2 = L.map('map2', {
+              center: [41.8968951,-87.6971449],
+              zoom: 10
+          });
+		
+           var canvas = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+        });
+				
+			var imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});	
+		
+			
+			
+           function getColor4(value) {
+              return value > 132885 ? '#ffffcc':
+                     value > 93000  ? '#7fcdbb':
+                     value > 62625  ? '#41b6c4':
+                     value > 37917  ? '#2c7fb8':
+                                     '#253494';
+          }
+		  function getColor5(value) {
+              return value > 99 ? '#fde725':
+					value > 95 ? '#7ad151':
+                     value > 85  ? '#23a884':
+                     value > 50  ? '#2a788e':
+                     value > 25  ? '#414387':
+                       '#440154';
+          }
+		  
+		  
+          function style(feature){
+            return {
+                fillColor: getColor4(feature.properties.AMR8E001),   // AMR8E001 is the field name for the Income data
+                weight: 0.7,
+                opacity: 1,
+                color: 'gray',
+                fillOpacity: 0.4
+            };
+			
+        }
+		function style(feature){
+            return {
+                fillColor: getColor5(feature.properties.perc_ins),   // perc_ins is the field name for the population density data
+                weight: 0.7,
+                opacity: 1,
+                color: 'gray',
+                fillOpacity: 0.4
+            };
+			
+        }
+	
+		
+			var health = L.geoJson(insur, {style:style}).addTo(map2);
+		
+			var income = L.geoJson(money, {style:style}).addTo(map2);
+			
+
+			
+        var legend2 = L.control({position: 'bottomright'}); // Try the other three corners if you like.
+
+        legend2.onAdd = function (map2) {
+
+            var div = L.DomUtil.create('div', 'legend2'),
+                grades = [0, 37917, 62625, 93000, 132885]; // The break values to define the intervals of population, note we begin from 0 here
+
+            div.innerHTML = '<b>Median Household Income <br> 2016-2020 <br></b>'; // The legend title (HTML-based), in this case it's Population Density 2011
+
+            // Loop through our the classes and generate a label with a color box for each interval.
+            // If you are creating a choropleth map, you DO NOT need to change lines below.
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+                '<i style="background:' + getColor4(grades[i] + 1) + '"></i>' +
+                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+            }
+
+            return div;
+        };
+		
+		
+		
+		var legend3 = L.control({position: 'bottomright'}); // Try the other three corners if you like.
+
+        legend3.onAdd = function (map2) {
+
+            var div = L.DomUtil.create('div', 'legend3'),
+                grades = [0, 25, 50, 85, 95, 99]; // The break values to define the intervals of population, note we begin from 0 here
+
+            div.innerHTML = '<b>Percent Population Insured <br> 2020 <br></b>'; // The legend title (HTML-based), in this case it's Population Density 2011
+
+            // Loop through our the classes and generate a label with a color box for each interval.
+            // If you are creating a choropleth map, you DO NOT need to change lines below.
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+                '<i style="background:' + getColor5(grades[i] + 1) + '"></i>' +
+                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+            }
+
+            return div;
+        };
+
+        legend2.addTo(map2);
+		
+		
+
+        var basemaps = {
+			"City Map": canvas,
+			"Satellite Map": imagery,
+			};
+
+        var overlaymaps = {
+            "Median Household Income": income, 
+			"Percent Insured": health,
+			
+			
+        };
+		income.addTo(map2);
+		canvas.addTo(map2);
+        L.control.layers(basemaps, overlaymaps).addTo(map2);
+
+        // Removing the legend when the layer is removed
+        map2.on('overlayremove', function(eventLayer){
+          if (eventLayer.name == 'Median Household Income'){ // We use the key/display name to refer to the layer
+            map.removeControl(legend2); // legend is the variable name of the layer legend
+          }
+        });
+
+        // Adding the legend when the layer is added
+        map2.on('overlayadd', function(eventLayer){
+          if (eventLayer.name == 'Median Household Income')
+		     legend2.addTo(map2);
+        });
+		
+		// Removing the legend when the layer is removed
+        map2.on('overlayremove', function(eventLayer){
+          if (eventLayer.name == 'Percent Insured'){ // We use the key/display name to refer to the layer
+            map.removeControl(legend3); // legend is the variable name of the layer legend
+          }
+        });
+
+        // Adding the legend when the layer is added
+        map2.on('overlayadd', function(eventLayer){
+          if (eventLayer.name == 'Percent Insured')
+		     legend3.addTo(map2);
+        });
+
+
+        </script>
+		<h2 style="font-family:verdana;">Purpose of this Study</h2>
+		<p style="font-family:courier;">This map represents the total population of Chicago in census tracts in relation to medical facility locations. This research will help us determine what communities are under-served/over-served. This will show the distribution by each community within Chicago as depicted by the dividing lines within each census tract (per 2020 data). The blue markers indicate medical facility locations.
+</p>
+   </body>
 </div>
