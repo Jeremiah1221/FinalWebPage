@@ -1,0 +1,289 @@
+
+ <head>
+        <title>DecemberFinal</title>
+
+         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+           crossorigin=""/>
+
+         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+           integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+           crossorigin=""></script>
+
+         <style type="text/css">
+          html, body { margin: 25; padding: 0; height: 90%; }
+          #map { min-height: 90%; }
+		  #map1 { min-height: 90%; }
+        </style>
+
+
+		<script type="text/javascript" src="EMSLocal.js"></script>
+		<script type="text/javascript" src="Poverty.js"></script>
+        <script type="text/javascript" src="Merged.js"></script>
+		<script type="text/javascript" src="pop_2020.js"></script>
+		
+<style>
+          /* Optional: adjust the values below to change the appearance of the legend */
+          .legend {
+              padding: 6px 8px;
+              line-height: 18px;
+              background: rgba(255,255,255,0.9);
+              box-shadow: 0 0 15px rgba(0,0,0,0.2);
+              border-radius: 5px;
+          }
+
+           /* Optional: adjust the values below to change the appearance of the legend color boxes */
+           .legend i {
+              width: 18px;
+              height: 18px;
+              float: left;
+              margin-right: 8px;
+              opacity: 0.7;
+          }
+        </style>
+
+    </head>
+<!-- Tab links -->
+<div class="tab">
+  <button class="tablinks" onclick="openCity(event, 'Jeremiah')">Jeremiah</button>
+  <button class="tablinks" onclick="openCity(event, 'Lucas')">Lucas</button>
+  <button class="tablinks" onclick="openCity(event, 'Tokyo')">Nitish</button>
+</div>
+
+<!-- Tab content -->
+<div id="Jeremiah" class="tabcontent">
+
+  <h3>Jeremiah</h3>
+  <body style="background-color:powderblue;">
+	<h1>Chicago Medical Facilities and EMS Stations in relation to Disadvantaged Areas. </h1>
+        <div id="map"></div>
+
+        <script type="text/javascript">
+
+          var map = L.map('map', {
+              center: [41.8930844,-87.7749233],
+              zoom: 10
+          });
+
+
+				var StreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				maxZoom: 19,
+				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+				});
+				
+				var TopoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+				});
+				TopoMap.addTo(map);
+           function getColor(value) {
+              return value > 8257 ? '#54278f':
+                     value > 5368  ? '#756bb1':
+                     value > 3852  ? '#9e9ac8':
+                     value > 1847  ? '#cbc9e2':
+                                   '#f2f0f7';
+          }
+
+          function style(feature){
+            return {
+                fillColor: getColor(feature.properties.Multipolygon),   // pop_den is the field name for the population density data
+                weight: 2,
+                opacity: 0.4,
+                color: 'red',
+                fillOpacity: 0.4
+            } };
+			
+				var overlayStyle = {
+				fillColor: 'brown',     // Fill color of polygons
+				color: 'white',       // Border color of polygons
+				weight: 1,            // Border thickness of polygons
+				opacity: 1,           // Opacity (0 to 1)
+				fillOpacity: 0.7      // Fill opacity (0 to 1)
+
+				}
+				
+				
+				var facilities = L.geoJson(meds, {style:style}).addTo(map);
+				var stations = L.geoJson(emer, {style:style}).addTo(map);
+				var poverty = L.geoJson(poor, {style:style}).addTo(map);
+		
+		
+		
+		var legend = L.control({position: 'bottomright'}); // Try the other three corners if you like.
+		
+
+				legend.onAdd = function (map) {
+
+            var div = L.DomUtil.create('div', 'legend'),
+                grades = [0, 1847, 3852, 5368, 8257]; // The break values to define the intervals of population, note we begin from 0 here
+
+            div.innerHTML = '<b>Location Type <br><br></b>'; // The legend title (HTML-based), in this case it's Population Density 2011
+
+            // Loop through our the classes and generate a label with a color box for each interval.
+            // If you are creating a choropleth map, you DO NOT need to change lines below.
+            return div;
+			};
+
+			legend.addTo(ma);
+		
+			var basemaps = {
+			"Street Map": StreetMap,
+			"OpenTopoMap": TopoMap
+			};
+
+			var overlaymaps = {
+			"MedicalFacilities": facilities,
+			"EMS Stations": stations,
+			"DisadvantagedAreas": poverty,
+			};
+			L.control.layers(basemaps, overlaymaps).addTo(map);
+			
+			// Removing the legend when the layer is removed
+			map.on('overlayremove', function(eventLayer){
+			if (eventLayer.name == 'Chicago Area Data'){ // We use the key/display name to refer to the layer
+			map.removeControl(legend); // legend is the variable name of the layer legend
+			}
+			});
+
+			// Adding the legend when the layer is added
+			map.on('overlayadd', function(eventLayer){
+			if (eventLayer.name == 'Chicago Area Data'){
+								legend.addTo(map);
+			}
+			});
+        </script>
+		<h2 style="font-family:verdana;">Purpose of this Study</h2>
+		<p style="font-family:courier;">This map represents the disadvantaged areas of Chicago in relation to medical facility and EMS station locations. This research will help us determine what communities are under-served/over-served. The red boundaries represent the disadvantaged areas, and the blue markers indicate medical, urgent care, and EMS facilities.</p>
+	</body>
+</div>
+
+
+
+
+
+<hr>
+
+<div id="Paris" class="tabcontent">
+  <h3>Lucas</h3>
+   <body style="background-color:powderblue;">
+	<h1 style="font-family:verdana;">Healthcare Access in Chicago</h1>
+        <div id="map1"></div>
+
+        <script type="text/javascript">
+
+          var map1 = L.map('map1', {
+              center: [41.8968951,-87.6971449],
+              zoom: 10
+          });
+		
+          var Esri_Topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+	      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
+        });
+				
+			var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+});	
+		
+			
+			
+           function getColor(value) {
+              return value > 11373 ? '#ffffcc':
+                     value > 6053  ? '#7fcdbb':
+                     value > 4250  ? '#41b6c4':
+                     value > 2617  ? '#2c7fb8':
+                                     '#253494';
+          }
+		  
+		  
+          function style(feature){
+            return {
+                fillColor: getColor(feature.properties.U7H001),   // pop_den is the field name for the population density data
+                weight: 0.7,
+                opacity: 1,
+                color: 'gray',
+                fillOpacity: 0.4
+            };
+			
+        }
+	
+		
+			var facilities = L.geoJson(meds, {style:style}).addTo(map1);
+		
+			var population = L.geoJson(tot_pop, {style:style}).addTo(map1);
+			
+
+			
+        var legend = L.control({position: 'bottomright'}); // Try the other three corners if you like.
+		
+
+        legend.onAdd = function (map1) {
+
+            var div = L.DomUtil.create('div', 'legend'),
+                grades = [0, 2617, 4250, 6053, 11373]; // The break values to define the intervals of population, note we begin from 0 here
+
+            div.innerHTML = '<b>Total Population <br> 2020 <br></b>'; // The legend title (HTML-based), in this case it's Population Density 2011
+
+            // Loop through our the classes and generate a label with a color box for each interval.
+            // If you are creating a choropleth map, you DO NOT need to change lines below.
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+                '<i style="background:' + getColor(grades[i] + 1) + '"></i>' +
+                grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+            }
+
+            return div;
+        };
+		
+		
+
+        var basemaps = {
+			"City Map": Esri_Topo,
+			"Sat Map": Esri_WorldImagery
+			};
+
+        var overlaymaps = {
+            "Medical Facilities": facilities, 
+			"Total Population": population,
+			
+			
+        };
+		facilities.addTo(map1);
+		Esri_Topo.addTo(map1);
+        L.control.layers(basemaps, overlaymaps).addTo(map1);
+
+        // Removing the legend when the layer is removed
+        map.on('overlayremove', function(eventLayer){
+          if (eventLayer.name == 'Medical Facilitie'){ // We use the key/display name to refer to the layer
+            map.removeControl(legend); // legend is the variable name of the layer legend
+          }
+        });
+
+        // Adding the legend when the layer is added
+        map.on('overlayadd', function(eventLayer){
+          if (eventLayer.name == 'Total Population')
+		     legend.addTo(map1);
+        });
+		
+		// Removing the legend when the layer is removed
+        map.on('overlayremove', function(eventLayer){
+          if (eventLayer.name == 'Total Population'){ // We use the key/display name to refer to the layer
+            map.removeControl(legend); // legend is the variable name of the layer legend
+          }
+        });
+
+        // Adding the legend when the layer is added
+        map.on('overlayadd', function(eventLayer){
+          if (eventLayer.name == 'Medical Facilitie')
+		     legend.addTo(map1);
+        });
+
+
+        </script>
+		<h2 style="font-family:verdana;">Purpose of this Study</h2>
+		<p style="font-family:courier;">This map represents the total population of Chicago in census tracts in relation to medical facility locations. This research will help us determine what communities are under-served/over-served. This will show the distribution by each community within Chicago as depicted by the dividing lines within each census tract (per 2020 data). The blue markers indicate medical facility locations.
+.</p>
+   </body>
+</div>
+
+<div id="Tokyo" class="tabcontent">
+  <h3>Nitish</h3>
+</div>
