@@ -312,11 +312,11 @@
   <h3>Nitish</h3>
    <body style="background-color:powderblue;">
 	<h1 style="font-family:verdana;">Income and Insurance Access in Chicago</h1>
-        <div id="map2"></div>
+        <div id="map"></div>
 
         <script type="text/javascript">
 
-          var map2 = L.map('map2', {
+          var map2 = L.map('map', {
               center: [41.8968951,-87.6971449],
               zoom: 10
           });
@@ -438,27 +438,27 @@
         L.control.layers(basemaps, overlaymaps).addTo(map2);
 
         // Removing the legend when the layer is removed
-        map2.on('overlayremove', function(eventLayer){
+        map.on('overlayremove', function(eventLayer){
           if (eventLayer.name == 'Median Household Income'){ // We use the key/display name to refer to the layer
             map.removeControl(legend2); // legend is the variable name of the layer legend
           }
         });
 
         // Adding the legend when the layer is added
-        map2.on('overlayadd', function(eventLayer){
+        map.on('overlayadd', function(eventLayer){
           if (eventLayer.name == 'Median Household Income')
 		     legend2.addTo(map2);
         });
 		
 		// Removing the legend when the layer is removed
-        map2.on('overlayremove', function(eventLayer){
+        map.on('overlayremove', function(eventLayer){
           if (eventLayer.name == 'Percent Insured'){ // We use the key/display name to refer to the layer
             map.removeControl(legend3); // legend is the variable name of the layer legend
           }
         });
 
         // Adding the legend when the layer is added
-        map2.on('overlayadd', function(eventLayer){
+        map.on('overlayadd', function(eventLayer){
           if (eventLayer.name == 'Percent Insured')
 		     legend3.addTo(map2);
         });
